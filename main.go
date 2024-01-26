@@ -2,11 +2,14 @@ package main
 
 import (
 	"fmt"
-	"math"
+	"io"
 	"os"
 	"os/signal"
 	"syscall"
-	"unsafe"
+)
+
+const (
+	EndOfTransmissionCode = 4
 )
 
 func main() {
@@ -31,43 +34,15 @@ func main() {
 	for {
 		_, err := os.Stdin.Read(buffer)
 		if err != nil {
-			fmt.Println(err.Error())
+			if err != io.EOF {
+				fmt.Println(err.Error())
+			}
 			break
 		}
-		if buffer[0] == 4 {
+		if buffer[0] == EndOfTransmissionCode {
 			break
 		}
 		fmt.Printf("%d\n", buffer[0])
 	}
 	CannonicalMode()
-}
-
-func CBreakMode() error {
-	var ter syscall.Termios
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, uintptr(syscall.Stdin), syscall.TCGETS, uintptr(unsafe.Pointer(&ter)))
-	if errno != 0 {
-		return errno
-	}
-
-	ter.Lflag &= math.MaxUint32 ^ (syscall.ICANON | syscall.ECHO)
-	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, uintptr(syscall.Stdin), syscall.TCSETS, uintptr(unsafe.Pointer(&ter)))
-	if errno != 0 {
-		return errno
-	}
-	return nil
-}
-
-func CannonicalMode() error {
-	var ter syscall.Termios
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, uintptr(syscall.Stdin), syscall.TCGETS, uintptr(unsafe.Pointer(&ter)))
-	if errno != 0 {
-		return errno
-	}
-
-	ter.Lflag |= syscall.ICANON | syscall.ECHO
-	_, _, errno = syscall.Syscall(syscall.SYS_IOCTL, uintptr(syscall.Stdin), syscall.TCSETS, uintptr(unsafe.Pointer(&ter)))
-	if errno != 0 {
-		return errno
-	}
-	return nil
 }
