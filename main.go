@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -13,9 +14,22 @@ const (
 )
 
 func main() {
-	err := CBreakMode()
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "%s\n", "filename is not provided")
+		os.Exit(1)
+	}
+
+	file, err := os.Open(os.Args[1])
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+		os.Exit(1)
+	}
+	defer file.Close()
+	fileReader := bufio.NewReader(file)
+
+	err = CBreakMode()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 		os.Exit(1)
 	}
 
@@ -30,19 +44,27 @@ func main() {
 		os.Exit(0)
 	}()
 
-	buffer := make([]byte, 1)
+	reader := bufio.NewReader(os.Stdin)
 	for {
-		_, err := os.Stdin.Read(buffer)
+		code, err := reader.ReadByte()
 		if err != nil {
 			if err != io.EOF {
-				fmt.Println(err.Error())
+				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
 			}
 			break
 		}
-		if buffer[0] == EndOfTransmissionCode {
+		if code == EndOfTransmissionCode {
 			break
 		}
-		fmt.Printf("%d\n", buffer[0])
+
+		char, _, err := fileReader.ReadRune()
+		if err != nil {
+			if err != io.EOF {
+				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+			}
+			break
+		}
+		fmt.Printf("%c", char)
 	}
 	CannonicalMode()
 }
