@@ -2,8 +2,10 @@ package main
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,43 +15,40 @@ const (
 	EndOfTransmissionCode = 4
 )
 
+type Config struct {
+	outputSpeed int
+}
+
 func main() {
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "%s\n", "filename is not provided")
-		os.Exit(1)
+	var cfg Config
+	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output by button press")
+	flag.Parse()
+
+	if flag.Arg(0) == "" {
+		log.Fatalln("input file not provided")
 	}
 
-	file, err := os.Open(os.Args[1])
+	file, err := os.Open(flag.Arg(0))
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		os.Exit(1)
+		log.Fatalln(err.Error())
 	}
 	defer file.Close()
 	fileReader := bufio.NewReader(file)
 
 	err = CBreakMode()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "%s\n", err.Error())
-		os.Exit(1)
+		log.Fatalln(err.Error())
 	}
 
-	signals := make(chan os.Signal, 1)
-	signal.Notify(signals, syscall.SIGINT)
-
-	go func() {
-		<-signals
-
-		fmt.Println("Signal recieved SIGINT")
-		CannonicalMode()
-		os.Exit(0)
-	}()
+	SetUpSignalsHandling()
 
 	reader := bufio.NewReader(os.Stdin)
+	buffer := make([]rune, cfg.outputSpeed)
 	for {
 		code, err := reader.ReadByte()
 		if err != nil {
 			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+				log.Println(err.Error())
 			}
 			break
 		}
@@ -57,14 +56,25 @@ func main() {
 			break
 		}
 
-		char, _, err := fileReader.ReadRune()
+		n, err := ReadRunes(fileReader, buffer)
 		if err != nil {
 			if err != io.EOF {
-				fmt.Fprintf(os.Stderr, "%s\n", err.Error())
+				log.Println(err.Error())
 			}
 			break
 		}
-		fmt.Printf("%c", char)
+		fmt.Printf("%s", string(buffer[:n]))
 	}
 	CannonicalMode()
+}
+
+func SetUpSignalsHandling() {
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, syscall.SIGINT)
+
+	go func() {
+		<-signals
+		CannonicalMode()
+		os.Exit(0)
+	}()
 }
