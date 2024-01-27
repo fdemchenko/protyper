@@ -2,13 +2,12 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"io"
 	"time"
 )
 
 type Typer interface {
-	Start() (chan struct{}, error)
+	Start() chan struct{}
 	Stop()
 }
 
@@ -30,7 +29,7 @@ func NewKeyboardTyper(keyboard io.Reader) KeyboardTyper {
 	return KeyboardTyper{keyboardReader: bufio.NewReader(keyboard), stopChan: make(chan struct{}, 1)}
 }
 
-func (at AutoTyper) Start() (chan struct{}, error) {
+func (at AutoTyper) Start() chan struct{} {
 	outgoingSignals := make(chan struct{})
 
 	go func() {
@@ -46,14 +45,14 @@ func (at AutoTyper) Start() (chan struct{}, error) {
 		}
 	}()
 
-	return outgoingSignals, nil
+	return outgoingSignals
 }
 
-func (kt KeyboardTyper) Start() (chan struct{}, error) {
+func (kt KeyboardTyper) Start() chan struct{} {
 	outgoingSignals := make(chan struct{})
 	err := CBreakMode()
 	if err != nil {
-		return nil, fmt.Errorf("cbreak mode: %w", err)
+		return nil
 	}
 
 	go func() {
@@ -74,7 +73,7 @@ func (kt KeyboardTyper) Start() (chan struct{}, error) {
 		CannonicalMode()
 	}()
 
-	return outgoingSignals, nil
+	return outgoingSignals
 }
 
 func (kt KeyboardTyper) Stop() {

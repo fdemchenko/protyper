@@ -54,17 +54,12 @@ func main() {
 		typer = NewKeyboardTyper(os.Stdin)
 	}
 
-	signals, err := typer.Start()
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
 	SetUpSignalsHandling()
 
 	buffer := make([]rune, cfg.outputSpeed)
 	colorizer := color.New(color.Attribute(cfg.outputColor))
 
-	for range signals {
+	for range typer.Start() {
 		n, err := ReadRunes(fileReader, buffer)
 		if err != nil {
 			typer.Stop()
