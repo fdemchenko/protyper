@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/fatih/color"
 )
 
 const (
@@ -17,11 +18,13 @@ const (
 
 type Config struct {
 	outputSpeed int
+	outputColor ColorArg
 }
 
 func main() {
 	var cfg Config
 	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output by button press")
+	flag.Var(&cfg.outputColor, "color", "output ANSI color (default white)")
 	flag.Parse()
 
 	if flag.Arg(0) == "" {
@@ -44,6 +47,7 @@ func main() {
 
 	reader := bufio.NewReader(os.Stdin)
 	buffer := make([]rune, cfg.outputSpeed)
+	colorizer := color.New(color.Attribute(cfg.outputColor))
 	for {
 		code, err := reader.ReadByte()
 		if err != nil {
@@ -63,7 +67,7 @@ func main() {
 			}
 			break
 		}
-		fmt.Printf("%s", string(buffer[:n]))
+		colorizer.Print(string(buffer[:n]))
 	}
 	CannonicalMode()
 }
