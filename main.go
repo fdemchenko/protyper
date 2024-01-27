@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"flag"
 	"log"
 	"os"
@@ -9,8 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	_ "embed"
+
 	"github.com/fatih/color"
 )
+
+//go:embed human.txt
+var defaultText []byte
 
 const (
 	EndOfTransmissionCode = 4
@@ -31,18 +37,19 @@ func main() {
 	flag.IntVar(&cfg.interval, "interval", 50, "auto typing interval in milliseconds, has no effect without auto mode")
 	flag.Parse()
 
-	if flag.Arg(0) == "" {
-		log.Fatalln("input file not provided")
+	var fileReader *bufio.Reader
+	if flag.Arg(0) != "" {
+		file, err := os.Open(flag.Arg(0))
+		if err != nil {
+			log.Fatalln(err.Error())
+		}
+		defer file.Close()
+		fileReader = bufio.NewReader(file)
+	} else {
+		fileReader = bufio.NewReader(bytes.NewReader(defaultText))
 	}
 
-	file, err := os.Open(flag.Arg(0))
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-	defer file.Close()
-	fileReader := bufio.NewReader(file)
-
-	err = CBreakMode()
+	err := CBreakMode()
 	if err != nil {
 		log.Fatalln(err.Error())
 	}
