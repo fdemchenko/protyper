@@ -3,11 +3,11 @@ package main
 import (
 	"bufio"
 	"flag"
-	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -19,12 +19,16 @@ const (
 type Config struct {
 	outputSpeed int
 	outputColor ColorArg
+	autoTyping  bool
+	interval    int
 }
 
 func main() {
 	var cfg Config
-	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output by button press")
+	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output in one signals")
 	flag.Var(&cfg.outputColor, "color", "output ANSI color (default white)")
+	flag.BoolVar(&cfg.autoTyping, "auto", false, "auto typing, not using keyboard")
+	flag.IntVar(&cfg.interval, "interval", 50, "auto typing interval in milliseconds, has no effect without auto mode")
 	flag.Parse()
 
 	if flag.Arg(0) == "" {
@@ -43,31 +47,30 @@ func main() {
 		log.Fatalln(err.Error())
 	}
 
+	var typer Typer
+	if cfg.autoTyping {
+		typer = NewAutoTyper(time.Millisecond * time.Duration(cfg.interval))
+	} else {
+		typer = NewKeyboardTyper(os.Stdin)
+	}
+
+	signals, err := typer.Start()
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+
 	SetUpSignalsHandling()
 
-	reader := bufio.NewReader(os.Stdin)
 	buffer := make([]rune, cfg.outputSpeed)
 	colorizer := color.New(color.Attribute(cfg.outputColor))
-	for {
-		code, err := reader.ReadByte()
-		if err != nil {
-			if err != io.EOF {
-				log.Println(err.Error())
-			}
-			break
-		}
-		if code == EndOfTransmissionCode {
-			break
-		}
 
+	for range signals {
 		n, err := ReadRunes(fileReader, buffer)
 		if err != nil {
-			if err != io.EOF {
-				log.Println(err.Error())
-			}
-			break
+			typer.Stop()
+		} else {
+			colorizer.Print(string(buffer[:n]))
 		}
-		colorizer.Print(string(buffer[:n]))
 	}
 	CannonicalMode()
 }
