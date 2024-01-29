@@ -32,8 +32,3 @@ Usage: protyper [-auto] [-color value] [-interval int] [-speed int] [FILE]
 - magenta
 
 ## Examples
-
-![Example 1](assets/code_file.mp4)
-
-![Example 2](assets/default_auto.mp4)
-
