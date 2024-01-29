@@ -6,7 +6,7 @@ This program allows you to press some random keys to produce predefined output i
 Auto mode just creates output without typing, good for background
 
 ## Installation
-`go install github.com/fdemchenko/protyper`
+```go install github.com/fdemchenko/protyper``` 
 
 
 ## Usage
