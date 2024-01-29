@@ -32,3 +32,7 @@ Usage: protyper [-auto] [-color value] [-interval int] [-speed int] [FILE]
 - magenta
 
 ## Examples
+https://github.com/fdemchenko/protyper/assets/89973537/bf2efb95-5c78-4c6a-80f0-74131c2c5939
+
+https://github.com/fdemchenko/protyper/assets/89973537/42965365-69e6-4167-9baa-6bf69465e22d
+
