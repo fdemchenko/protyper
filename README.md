@@ -12,7 +12,7 @@ Auto mode just creates output without typing, good for background
 ## Usage
 
 ```
-Usage: protyper [-auto] [-color value] [-interval int] [-speed int]
+Usage: protyper [-auto] [-color value] [-interval int] [-speed int] [FILE]
   -auto
         auto typing, not using keyboard
   -color value
@@ -31,4 +31,9 @@ Usage: protyper [-auto] [-color value] [-interval int] [-speed int]
 - red
 - magenta
 
+## Examples
+
+![Example 1](videos/code_file.mp4)
+
+![Example 2](videos/default_auto.mp4)
 
