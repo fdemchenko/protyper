@@ -33,7 +33,7 @@ Usage: protyper [-auto] [-color value] [-interval int] [-speed int] [FILE]
 
 ## Examples
 
-![Example 1](videos/code_file.mp4)
+![Example 1](assets/code_file.mp4)
 
-![Example 2](videos/default_auto.mp4)
+![Example 2](assets/default_auto.mp4)
 
