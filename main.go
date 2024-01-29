@@ -31,7 +31,7 @@ type Config struct {
 
 func main() {
 	var cfg Config
-	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output in one signals")
+	flag.IntVar(&cfg.outputSpeed, "speed", 1, "characters amount to output in one signal")
 	flag.Var(&cfg.outputColor, "color", "output ANSI color (default white)")
 	flag.BoolVar(&cfg.autoTyping, "auto", false, "auto typing, not using keyboard")
 	flag.IntVar(&cfg.interval, "interval", 50, "auto typing interval in milliseconds, has no effect without auto mode")
